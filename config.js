@@ -9,7 +9,7 @@ config = {
     development: {
         // The url to use when providing links to the site, E.g. in RSS and email.
         // must not contain a path suffix after the hostname - "subdirs" are not (yet) supported! 
-        url: 'http://my-ghost-blog.com',
+        url: 'http://progguild.azurewebsites.net/',
 
         // Example mail config
         // Visit http://docs.ghost.org/mail for instructions
@@ -46,7 +46,7 @@ config = {
     // Configure your URL and mail settings here
     production: {
         // must not contain a path suffix after the hostname - "subdirs" are not (yet) supported! 
-        url: 'http://pup-pg.azurewebsites.net',
+        url: 'http://progguild.azurewebsites.net/',
         database: {
             client: 'sqlite3',
             connection: {
