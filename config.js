@@ -47,7 +47,6 @@ config = {
     production: {
         // must not contain a path suffix after the hostname - "subdirs" are not (yet) supported! 
         url: 'http://pup-pg.azurewebsites.net',
-        mail: {},
         database: {
             client: 'sqlite3',
             connection: {
@@ -65,12 +64,12 @@ config = {
 			transport: 'SMTP',
 				options: {
 					service: 'Gmail',
-			auth: {
-				user: 'leonmagsisi@gmail.com',
-				pass: 'google_Password???'
-        }
-    }
-}
+					auth: {
+						user: 'leonmagsisi@gmail.com',
+						pass: 'google_Password???'
+					}
+				}
+		}
     },
 
     // **Developers only need to edit below here**
