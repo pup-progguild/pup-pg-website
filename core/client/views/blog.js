@@ -1,4 +1,4 @@
-/*global window, document, Ghost, $, _, Backbone, JST, NProgress */
+/*global window, document, Ghost, $, _, Backbone, JST */
 (function () {
     "use strict";
 
@@ -10,13 +10,6 @@
     // ----------
     Ghost.Views.Blog = Ghost.View.extend({
         initialize: function (options) {
-            /*jslint unparam:true*/
-            this.listenTo(this.collection, 'request', function () {
-                NProgress.start();
-            });
-            this.listenTo(this.collection, 'sync', function () {
-                NProgress.done();
-            });
             this.addSubview(new PreviewContainer({ el: '.js-content-preview', collection: this.collection })).render();
             this.addSubview(new ContentList({ el: '.js-content-list', collection: this.collection })).render();
         }
@@ -33,21 +26,15 @@
             'click .content-list-content'    : 'scrollHandler'
         },
 
-        initialize: function () {
+        initialize: function (options) {
             this.$('.content-list-content').scrollClass({target: '.content-list', offset: 10});
             this.listenTo(this.collection, 'remove', this.showNext);
-            this.listenTo(this.collection, 'add', this.renderPost);
             // Can't use backbone event bind (see: http://stackoverflow.com/questions/13480843/backbone-scroll-event-not-firing)
             this.$('.content-list-content').scroll($.proxy(this.checkScroll, this));
         },
 
         showNext: function () {
             if (this.isLoading) { return; }
-
-            if (!this.collection.length) {
-                return Backbone.trigger('blog:activeItem', null);
-            }
-
             var id = this.collection.at(0) ? this.collection.at(0).id : false;
             if (id) {
                 Backbone.trigger('blog:activeItem', id);
@@ -88,17 +75,16 @@
 
             // Load moar posts!
             this.isLoading = true;
+
             this.collection.fetch({
                 update: true,
                 remove: false,
                 data: {
                     status: 'all',
                     page: (self.collection.currentPage + 1),
-                    where: { page: 'all' },
                     orderBy: ['updated_at', 'DESC']
                 }
             }).then(function onSuccess(response) {
-                /*jslint unparam:true*/
                 self.render();
                 self.isLoading = false;
             }, function onError(e) {
@@ -106,18 +92,9 @@
             });
         },
 
-        renderPost: function (model) {
-            this.$('ol').append(this.addSubview(new ContentItem({model: model})).render().el);
-        },
-
         render: function () {
-            var $list = this.$('ol');
-
-            // Clear out any pre-existing subviews.
-            this.removeSubviews();
-
             this.collection.each(function (model) {
-                $list.append(this.addSubview(new ContentItem({model: model})).render().el);
+                this.$('ol').append(this.addSubview(new ContentItem({model: model})).render().el);
             }, this);
             this.showNext();
         }
@@ -138,7 +115,6 @@
 
         initialize: function () {
             this.listenTo(Backbone, 'blog:activeItem', this.checkActive);
-            this.listenTo(this.model, 'change:page', this.render);
             this.listenTo(this.model, 'destroy', this.removeItem);
         },
 
@@ -194,12 +170,10 @@
         activeId: null,
 
         events: {
-            'click .post-controls .post-edit' : 'editPost',
-            'click .featured' : 'toggleFeatured',
-            'click .unfeatured' : 'toggleFeatured'
+            'click .post-controls .post-edit' : 'editPost'
         },
 
-        initialize: function () {
+        initialize: function (options) {
             this.listenTo(Backbone, 'blog:activeItem', this.setActivePreview);
         },
 
@@ -214,49 +188,22 @@
             e.preventDefault();
             // for now this will disable "open in new tab", but when we have a Router implemented
             // it can go back to being a normal link to '#/ghost/editor/X'
-            window.location = Ghost.paths.ghostRoot + '/ghost/editor/' + this.model.get('id') + '/';
-        },
-
-        toggleFeatured: function (e) {
-            var self = this,
-                featured = !self.model.get('featured'),
-                featuredEl = $(e.currentTarget),
-                model = this.collection.get(this.activeId);
-
-            model.save({
-                featured: featured
-            }, {
-                success : function () {
-                    featuredEl.removeClass("featured unfeatured").addClass(featured ? "featured" : "unfeatured");
-                    Ghost.notifications.addItem({
-                        type: 'success',
-                        message: "Post successfully marked as " + (featured ? "featured" : "not featured") + ".",
-                        status: 'passive'
-                    });
-                },
-                error : function (model, xhr) {
-                    /*jslint unparam:true*/
-                    Ghost.notifications.addItem({
-                        type: 'error',
-                        message: Ghost.Views.Utils.getRequestErrorMessage(xhr),
-                        status: 'passive'
-                    });
-                }
-            });
+            window.location = '/ghost/editor/' + this.model.get('id') + '/';
         },
 
         templateName: "preview",
 
         render: function () {
-            this.model = this.collection.get(this.activeId);
-            this.$el.html(this.template(this.templateData()));
-
+            if (this.activeId) {
+                this.model = this.collection.get(this.activeId);
+                this.$el.html(this.template(this.templateData()));
+            }
             this.$('.content-preview-content').scrollClass({target: '.content-preview', offset: 10});
             this.$('.wrapper').on('click', 'a', function (e) {
                 $(e.currentTarget).attr('target', '_blank');
             });
 
-            if (this.model !== undefined) {
+            if (this.model !== 'undefined') {
                 this.addSubview(new Ghost.View.PostSettings({el: $('.post-controls'), model: this.model})).render();
             }
 

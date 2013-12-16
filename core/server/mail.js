@@ -3,9 +3,7 @@ var cp         = require('child_process'),
     _          = require('underscore'),
     when       = require('when'),
     nodefn     = require('when/node/function'),
-    nodemailer = require('nodemailer'),
-    api        = require('./api'),
-    config     = require('./config');
+    nodemailer = require('nodemailer');
 
 function GhostMailer(opts) {
     opts = opts || {};
@@ -14,10 +12,16 @@ function GhostMailer(opts) {
 
 // ## E-mail transport setup
 // *This promise should always resolve to avoid halting Ghost::init*.
-GhostMailer.prototype.init = function () {
-    var self = this;
-    if (config().mail && config().mail.transport && config().mail.options) {
-        this.createTransport(config());
+GhostMailer.prototype.init = function (ghost) {
+    this.ghost = ghost;
+    // TODO: fix circular reference ghost -> mail -> api -> ghost, remove this late require
+    this.api = require('./api');
+
+    var self = this,
+        config = ghost.config();
+
+    if (config.mail && config.mail.transport && config.mail.options) {
+        this.createTransport(config);
         return when.resolve();
     }
 
@@ -57,7 +61,7 @@ GhostMailer.prototype.createTransport = function (config) {
 };
 
 GhostMailer.prototype.usingSendmail = function () {
-    api.notifications.add({
+    this.api.notifications.add({
         type: 'info',
         message: [
             "Ghost is attempting to use your server's <b>sendmail</b> to send e-mail.",
@@ -70,7 +74,7 @@ GhostMailer.prototype.usingSendmail = function () {
 };
 
 GhostMailer.prototype.emailDisabled = function () {
-    api.notifications.add({
+    this.api.notifications.add({
         type: 'warn',
         message: [
             "Ghost is currently unable to send e-mail.",
@@ -90,23 +94,22 @@ GhostMailer.prototype.send = function (message) {
     if (!(message && message.subject && message.html)) {
         return when.reject(new Error('Email Error: Incomplete message data.'));
     }
-    api.settings.read('email').then(function (email) {
-        var from = config().mail.fromaddress || email.value,
-            to = message.to || email.value;
 
-        message = _.extend(message, {
-            from: from,
-            to: to,
-            generateTextFromHTML: true
-        });
-    }).then(function () {
-        var sendMail = nodefn.lift(this.transport.sendMail.bind(this.transport));
-        return sendMail(message);
-    }).otherwise(function (error) {
+    var from = this.ghost.config().mail.fromaddress || this.ghost.settings('email'),
+        to = message.to || this.ghost.settings('email'),
+        sendMail = nodefn.lift(this.transport.sendMail.bind(this.transport));
+
+    message = _.extend(message, {
+        from: from,
+        to: to,
+        generateTextFromHTML: true
+    });
+
+    return sendMail(message).otherwise(function (error) {
         // Proxy the error message so we can add 'Email Error:' to the beginning to make it clearer.
         error =  _.isString(error) ? 'Email Error:' + error : (_.isObject(error) ? 'Email Error: ' + error.message : 'Email Error: Unknown Email Error');
         return when.reject(new Error(error));
     });
 };
 
-module.exports = new GhostMailer();
+module.exports = GhostMailer;

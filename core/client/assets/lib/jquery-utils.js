@@ -16,7 +16,6 @@
      * @returns {boolean}
      */
     $.expr[":"].containsExact = function (obj, index, meta, stack) {
-        /*jslint unparam:true*/
         return (obj.textContent || obj.innerText || $(obj).text() || "") === meta[3];
     };
 
@@ -71,7 +70,7 @@
         if (this.css('-ms-transtion-duration')) {
             return Math.round(parseFloat(this.css('-ms-transtion-duration')) * 1000);
         }
-
+        
         if (this.css('-moz-transtion-duration')) {
             return Math.round(parseFloat(this.css('-moz-transtion-duration')) * 1000);
         }
@@ -162,12 +161,12 @@
     /**
      * Adds appropriate inflection for pluralizing the singular form of a word when appropriate.
      * This is an overly simplistic implementation that does not handle irregular plurals.
-     * @param {Number} count
+     * @param {Number} count 
      * @param {String} singularWord
      * @returns {String}
      */
     $.pluralize = function inflect(count, singularWord) {
-        var base = [count, ' ', singularWord];
+    	var base = [count, ' ', singularWord];
 
         return (count === 1) ? base.join('') : base.concat('s').join('');
     };

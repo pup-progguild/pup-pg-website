@@ -1,25 +1,22 @@
 /*jslint regexp: true */
-var _           = require('underscore'),
-    colors      = require('colors'),
-    fs          = require('fs'),
-    configPaths = require('./config/paths'),
-    path        = require('path'),
+var _      = require('underscore'),
+    colors = require('colors'),
+    fs     = require('fs'),
+    path   = require('path'),
     errors,
 
     // Paths for views
-    defaultErrorTemplatePath = path.resolve(configPaths().adminViews, 'user-error.hbs'),
-    userErrorTemplatePath    = path.resolve(configPaths().themePath, 'error.hbs'),
+    appRoot                  = path.resolve(__dirname, '../'),
+    themePath                = path.resolve(appRoot + '/content/themes'),
+    adminTemplatePath        = path.resolve(appRoot + '/server/views/'),
+    defaultErrorTemplatePath = path.resolve(adminTemplatePath + '/user-error.hbs'),
+    userErrorTemplatePath    = path.resolve(themePath + '/error.hbs'),
     userErrorTemplateExists;
 
 /**
  * Basic error handling helpers
  */
 errors = {
-    updateActiveTheme: function (activeTheme) {
-        userErrorTemplatePath = path.resolve(configPaths().themePath, activeTheme, 'error.hbs');
-        userErrorTemplateExists = undefined;
-    },
-
     throwError: function (err) {
         if (!err) {
             err = new Error("An error occurred");
@@ -93,7 +90,6 @@ errors = {
     },
 
     logErrorWithRedirect: function (msg, context, help, redirectTo, req, res) {
-        /*jslint unparam:true*/
         var self = this;
 
         return function () {
@@ -106,10 +102,9 @@ errors = {
     },
 
     renderErrorPage: function (code, err, req, res, next) {
-        /*jslint unparam:true*/
 
         function parseStack(stack) {
-            if (!_.isString(stack)) {
+            if (typeof stack !== 'string') {
                 return stack;
             }
 
@@ -146,7 +141,7 @@ errors = {
             }
 
             // TODO: Attach node-polyglot
-            res.status(code).render((errorView || 'error'), {
+            res.render((errorView || 'error'), {
                 message: err.message || err,
                 code: code,
                 stack: stack
@@ -194,9 +189,9 @@ errors = {
             if (!err || !(err instanceof Error)) {
                 next();
             }
-            errors.renderErrorPage(err.status || 500, err, req, res, next);
+            errors.renderErrorPage(500, err, req, res, next);
         } else {
-            res.send(err.status || 500, err);
+            res.send(500, err);
         }
     }
 };

@@ -41,7 +41,6 @@ var when   = require('when'),
                     fpath = path.join(dir, file);
                 subtree[name] = filePromise;
                 fs.lstat(fpath, function (error, result) {
-                    /*jslint unparam:true*/
                     if (result.isDirectory()) {
                         fileDeferred.resolve(readDir(fpath, options, depth + 1));
                     } else {

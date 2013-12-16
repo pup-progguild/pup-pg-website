@@ -2,7 +2,7 @@
 (function () {
     'use strict';
 
-    Ghost.Models.Widget = Ghost.ProgressModel.extend({
+    Ghost.Models.Widget = Backbone.Model.extend({
 
         defaults: {
             title: '',
@@ -35,8 +35,8 @@
         }
     });
 
-    Ghost.Collections.Widgets = Ghost.ProgressCollection.extend({
-        // url: Ghost.paths.apiRoot + '/widgets/', // What will this be?
+    Ghost.Collections.Widgets = Backbone.Collection.extend({
+        // url: Ghost.settings.apiRoot + '/widgets/', // What will this be?
         model: Ghost.Models.Widget
     });
 
