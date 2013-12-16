@@ -9,7 +9,7 @@ config = {
     development: {
         // The url to use when providing links to the site, E.g. in RSS and email.
         // must not contain a path suffix after the hostname - "subdirs" are not (yet) supported! 
-        url: 'http://progguild.azurewebsites.net/',
+        url: 'http://progguild.azurewebsites.net',
 
         // Example mail config
         // Visit http://docs.ghost.org/mail for instructions
@@ -46,7 +46,7 @@ config = {
     // Configure your URL and mail settings here
     production: {
         // must not contain a path suffix after the hostname - "subdirs" are not (yet) supported! 
-        url: 'http://progguild.azurewebsites.net/',
+        url: 'http://progguild.azurewebsites.net',
         database: {
             client: 'sqlite3',
             connection: {
@@ -60,16 +60,7 @@ config = {
             // Port to be passed to node's `net.Server#listen()`, for iisnode set this to `process.env.PORT`
             port: 'process.env.PORT'
         },
-        mail: {
-			transport: 'SMTP',
-				options: {
-					service: 'Gmail',
-					auth: {
-						user: 'leonmagsisi@gmail.com',
-						pass: 'google_Password???'
-					}
-				}
-		}
+        mail: {}
     },
 
     // **Developers only need to edit below here**
